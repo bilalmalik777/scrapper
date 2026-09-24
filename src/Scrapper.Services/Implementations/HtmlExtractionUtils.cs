@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Scrapper.Models.Enums;
@@ -46,8 +47,19 @@ internal static class HtmlExtractionUtils
         };
     }
 
+    private static readonly Regex HorizontalWhitespaceRunPattern = new(@"[ \t]+", RegexOptions.Compiled);
+
+    // Collapses repeated literal spaces/tabs within a line (a common CMS/source-formatting
+    // artifact — e.g. a postcode ending up as "KT10  9NP" with a double space, which a regex
+    // expecting exactly one whitespace character between the two halves then fails to match at
+    // all) down to one space, the way a browser renders them. Deliberately leaves actual
+    // newlines alone rather than collapsing all whitespace uniformly: several field-value
+    // patterns (see FieldSynonymCatalog's postcode-anchored Location fallback) rely on a raw
+    // '\n' as a rough proxy for "this is a different block of content" to stop a lazy match
+    // from reaching across unrelated page content — flattening newlines into spaces here would
+    // silently let those patterns span far more of the page than intended.
     public static string CleanText(string text) =>
-        System.Net.WebUtility.HtmlDecode(text).Trim();
+        HorizontalWhitespaceRunPattern.Replace(System.Net.WebUtility.HtmlDecode(text), " ").Trim();
 
     private static readonly HashSet<string> NonVisibleTextTags = new(StringComparer.OrdinalIgnoreCase)
     {

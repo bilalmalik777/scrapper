@@ -24,13 +24,21 @@ public static class FieldSynonymCatalog
         ],
         [FieldKind.Location] =
         [
-            "location", "address", "based in", "practice location", "clinic location",
+            "location", "address", "based in",
             "city", "town", "postcode", "zip", "region"
             // Deliberately excludes "area" and "place" — both are near-universal generic CSS/id
             // naming conventions unrelated to geography ("widget-area", "footer-area",
             // "content-area", "marketplace"), so matching them as class/id/testid substrings
             // reliably produces false positives (e.g. a page's "footer-widget-area" wrapper
             // being mistaken for a location container) rather than real signal.
+            //
+            // Also excludes "practice location"/"clinic location" — the word-level fallback
+            // matcher splits multi-word tokens and treats "practice" alone as a 4+-char match,
+            // and "practice" by itself is a normal, generic word in unrelated markup (e.g. a
+            // directory card's own "article-practice-name" class, which names the clinic, not
+            // its address). The plain "location" token above already covers every case these
+            // compound tokens would have matched via a genuine substring — they added nothing
+            // except this false-positive path, exactly like "post code" below.
             //
             // Also excludes "post code" (as two words) — the word-level fallback matcher
             // splits multi-word tokens and treats "post" alone as a 4+-char match, and "post"

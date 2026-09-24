@@ -236,10 +236,21 @@ public partial class SemanticHtmlExtractionStrategy : IFieldExtractionStrategy
         // name-driven aliases, fall back to the text right after the first heading.
         if (FieldSynonymCatalog.RoleStructuredDataPaths.ContainsKey(field.Name.Trim()))
         {
-            var nameHeading = record.Descendants().FirstOrDefault(n => HeadingTags.Contains(n.Name));
+            // Same cookie-consent-banner exclusion as the Name-kind heading search above: on a
+            // single-record whole-page record, a real headless-browser-rendered consent widget
+            // can put its own genuine heading ("This site uses cookies...") before the page's
+            // actual name heading — without this guard, its own following paragraph ("Some of
+            // these cookies are essential...") gets picked up as if it were the person's role.
+            var nameHeading = record.Descendants().FirstOrDefault(n => HeadingTags.Contains(n.Name) && !IsCookieConsentHeading(n));
             var subtitle = nameHeading?.NextSiblingElementAny() ?? nameHeading?.ParentNode?.NextSiblingElementAny();
             var subtitleText = subtitle is null ? null : HtmlExtractionUtils.GetVisibleText(subtitle);
-            if (!string.IsNullOrWhiteSpace(subtitleText) && subtitleText.Length <= 200)
+            // The element right after the name heading is a "role/specialty" line on many
+            // sites, but on a directory card it's just as often the address teaser instead
+            // (e.g. "<h4>Name</h4><div class='teaser'><p>Street, Town, POSTCODE</p></div>") —
+            // an address is never a plausible role, so a postcode-shaped subtitle is rejected
+            // here rather than being surfaced as one (and duplicated with a genuine Location field).
+            if (!string.IsNullOrWhiteSpace(subtitleText) && subtitleText.Length <= 200
+                && !FieldSynonymCatalog.Patterns[FieldKind.Location].Any(r => r.IsMatch(subtitleText)))
             {
                 return Result(subtitleText, 55);
             }

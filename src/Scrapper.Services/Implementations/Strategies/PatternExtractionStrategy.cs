@@ -101,6 +101,17 @@ public class PatternExtractionStrategy : IFieldExtractionStrategy
 
                 if (allMatches.Count > 0)
                 {
+                    if (resolvedKind == FieldKind.Location)
+                    {
+                        var clinicName = TryFindClinicNameLabel(context.RecordNode);
+                        if (clinicName is not null)
+                        {
+                            allMatches = allMatches
+                                .Select(a => a.Contains(clinicName, StringComparison.OrdinalIgnoreCase) ? a : $"{clinicName}, {a}")
+                                .ToList();
+                        }
+                    }
+
                     return Task.FromResult<ExtractionCandidate?>(
                         new ExtractionCandidate(string.Join("; ", allMatches), 65, Source));
                 }
@@ -133,6 +144,27 @@ public class PatternExtractionStrategy : IFieldExtractionStrategy
         }
 
         return Task.FromResult<ExtractionCandidate?>(null);
+    }
+
+    // Elements using this convention are common on directory-listing cards (a clinic/practice
+    // name shown above its own address, in a wrapper distinct from both the person's name and
+    // the address itself). Narrow and specific enough that a false positive is very unlikely,
+    // unlike a bare "name" token which could match all sorts of unrelated things.
+    private static readonly string[] ClinicNameMarkers = ["practice-name", "practice name", "clinic-name", "clinic name"];
+
+    private static string? TryFindClinicNameLabel(HtmlAgilityPack.HtmlNode record)
+    {
+        var label = record.Descendants()
+            .FirstOrDefault(n => n.NodeType == HtmlAgilityPack.HtmlNodeType.Element
+                && ClinicNameMarkers.Any(m => HtmlExtractionUtils.BuildAttributeSignature(n).Contains(m, StringComparison.OrdinalIgnoreCase)));
+
+        if (label is null)
+        {
+            return null;
+        }
+
+        var text = HtmlExtractionUtils.GetVisibleText(label).Trim();
+        return text.Length is > 0 and <= 150 ? text : null;
     }
 
     private ExtractionCandidate? TryExtractPhoneFromScriptData(ExtractionContext context)

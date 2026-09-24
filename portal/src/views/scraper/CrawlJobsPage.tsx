@@ -30,13 +30,30 @@ import { scraperApi } from '../../services/scraper.service'
 import { ApiError } from '../../api/client'
 import type { CrawlJobState, FieldDefinition, PagedCrawlConfig, ScrapedRecord } from '../../api/types'
 
-// Kept in sync with the backend's PagedCrawlConfigDto defaults — see CrawlJobDtos.cs.
+const field = (name: string, type?: FieldDefinition['type'], required = false): FieldDefinition => ({
+  name,
+  type: type ?? null,
+  required,
+  selectorType: 'Css',
+  extractionType: 'Text',
+})
+
+// Same defaults as the single-scrape Web Scraper page (see ScraperPage.tsx's DEFAULT_FIELDS) —
+// kept in sync with the backend's PagedCrawlConfigDto defaults for everything else (see CrawlJobDtos.cs).
+const DEFAULT_FIELDS: FieldDefinition[] = [
+  field('Name', 'Name', true),
+  field('Role'),
+  field('Location', 'Location'),
+  field('Experience'),
+  field('Phone', 'Phone'),
+  field('Email', 'Email'),
+  field('Languages', 'Text'),
+  field('Fees', 'Currency'),
+]
+
 const DEFAULT_CONFIG: PagedCrawlConfig = {
   url: '',
-  fields: [
-    { name: 'Name', type: 'Name', required: false, selectorType: 'Css', extractionType: 'Text' },
-    { name: 'Location', type: 'Location', required: false, selectorType: 'Css', extractionType: 'Text' },
-  ],
+  fields: DEFAULT_FIELDS,
   totalPages: 1,
   minDelaySeconds: 5,
   maxDelaySeconds: 15,
