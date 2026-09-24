@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Scrapper.Api/Scrapper.Api.csproj" />
+    <Project Path="src/Scrapper.Models/Scrapper.Models.csproj" />
+    <Project Path="src/Scrapper.Services/Scrapper.Services.csproj" />
+    <Project Path="src/Scrapper.Utils/Scrapper.Utils.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Scrapper.Api.IntegrationTests/Scrapper.Api.IntegrationTests.csproj" />
+    <Project Path="tests/Scrapper.Services.Tests/Scrapper.Services.Tests.csproj" />
+  </Folder>
+</Solution>

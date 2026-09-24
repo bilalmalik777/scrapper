@@ -1,0 +1,17 @@
+## .NET
+bin/
+obj/
+*.user
+logs/
+
+## Node / frontend
+node_modules/
+portal/build/
+tests/node_modules/
+tests/test-results/
+tests/playwright-report/
+
+## IDE
+.vs/
+.idea/
+*.swp

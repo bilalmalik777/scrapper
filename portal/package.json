@@ -1,0 +1,81 @@
+{
+  "name": "@coreui/coreui-pro-react-admin-template-typescript",
+  "version": "5.7.0",
+  "description": "CoreUI PRO React Admin Template TypeScript",
+  "config": {
+    "theme": "bright",
+    "zipPrefix": ".zip/coreui-pro-react-admin-template-typescript-theme",
+    "bundler": "vite"
+  },
+  "homepage": ".",
+  "bugs": {
+    "url": "https://github.com/coreui/coreui-pro-react-admin-template-typescript/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:coreui/coreui-pro-react-admin-template-typescript.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "The CoreUI Team (https://github.com/orgs/coreui/people)",
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint",
+    "serve": "vite preview",
+    "start": "vite",
+    "type-check": "tsc --noEmit",
+    "zip": "git archive -o $npm_package_config_zipPrefix-$npm_package_config_theme-$npm_package_config_bundler-v$npm_package_version.zip -9 HEAD"
+  },
+  "dependencies": {
+    "@coreui/chartjs": "^4.1.0",
+    "@coreui/coreui-pro": "^5.17.0",
+    "@coreui/icons": "^3.0.1",
+    "@coreui/icons-react": "^2.3.0",
+    "@coreui/react-chartjs": "^3.0.0",
+    "@coreui/react-pro": "^5.19.0",
+    "@coreui/utils": "^2.0.2",
+    "@fullcalendar/core": "^6.1.18",
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/react": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
+    "@popperjs/core": "^2.11.8",
+    "@react-google-maps/api": "^2.20.7",
+    "chart.js": "^4.5.0",
+    "classnames": "^2.5.1",
+    "core-js": "^3.45.0",
+    "i18next": "^25.3.2",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
+    "prop-types": "^15.8.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-i18next": "^15.6.1",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.8.0",
+    "redux": "5.0.1",
+    "simplebar-react": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "@types/prop-types": "^15.7.15",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.3.0",
+    "jiti": "^2.5.1",
+    "postcss": "^8.5.6",
+    "prettier": "3.6.2",
+    "sass": "^1.90.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0",
+    "vite": "^7.1.1"
+  }
+}

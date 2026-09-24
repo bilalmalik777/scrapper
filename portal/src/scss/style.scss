@@ -1,0 +1,175 @@
+@use "sass:color";
+@use "@coreui/coreui-pro/scss/functions/color" as *;
+@use "functions" as *;
+
+$primary-color: #5046e5 !default;
+$success-color: #51cc8a !default;
+$danger-color: #ef376e !default;
+$warning-color: #fc0 !default;
+$info-color: #747af2 !default;
+
+$primary-dark-color: color.adjust($primary-color, $saturation: -10%) !default;
+$success-dark-color: color.adjust($success-color, $saturation: -10%) !default;
+$info-dark-color: color.adjust($info-color, $saturation: -10%) !default;
+$warning-dark-color: color.adjust($warning-color, $saturation: -10%) !default;
+$danger-dark-color: color.adjust($danger-color, $saturation: -10%) !default;
+
+$primary-gradient-dark-color: gradient($primary-dark-color) !default;
+$danger-gradient-dark-color: gradient($danger-dark-color) !default;
+$warning-gradient-dark-color: gradient($warning-dark-color) !default;
+$success-gradient-dark-color: gradient($success-dark-color) !default;
+$info-gradient-dark-color: gradient($info-dark-color) !default;
+
+@use "@coreui/coreui-pro/scss/coreui" as * with (
+  $enable-deprecation-messages: false,
+  $primary: $primary-color,
+  $success: $success-color,
+  $danger: $danger-color,
+  $warning: $warning-color,
+  $info: $info-color,
+  $primary-text-emphasis: shade-color($primary-color, 60%),
+  $success-text-emphasis: shade-color($success-color, 60%),
+  $info-text-emphasis: shade-color($info-color, 60%),
+  $warning-text-emphasis: shade-color($warning-color, 60%),
+  $danger-text-emphasis: shade-color($danger-color, 60%),
+  $primary-bg-subtle: tint-color($primary-color, 80%),
+  $success-bg-subtle: tint-color($success-color, 80%),
+  $info-bg-subtle: tint-color($info-color, 80%),
+  $warning-bg-subtle: tint-color($warning-color, 80%),
+  $danger-bg-subtle:  tint-color($danger-color, 80%),
+  $primary-border-subtle: tint-color($primary-color, 60%),
+  $success-border-subtle: tint-color($success-color, 60%),
+  $info-border-subtle: tint-color($info-color, 60%),
+  $warning-border-subtle: tint-color($warning-color, 60%),
+  $danger-border-subtle: tint-color($danger-color, 60%),
+  $primary-gradient: gradient($primary-color, 30%, 10%),
+  $danger-gradient: gradient($danger-color, 30%, 10%),
+  $warning-gradient: gradient($warning-color, 30%, 10%),
+  $success-gradient: gradient($success-color, 30%, 10%),
+  $info-gradient: gradient($info-color, 30%, 10%),
+  $theme-gradients-dark: (
+    "primary": $primary-gradient-dark-color,
+    "success": $success-gradient-dark-color,
+    "info":    $info-gradient-dark-color,
+    "warning": $warning-gradient-dark-color,
+    "danger":  $danger-gradient-dark-color
+  ),
+  $primary-text-emphasis-dark: shade-color($primary-dark-color, 60%),
+  $info-text-emphasis-dark: shade-color($info-dark-color, 60%),
+  $warning-text-emphasis-dark: shade-color($warning-dark-color, 60%),
+  $danger-text-emphasis-dark: shade-color($danger-dark-color, 60%),
+  $primary-bg-subtle-dark: tint-color($primary-dark-color, 80%),
+  $success-bg-subtle-dark: tint-color($success-dark-color, 80%),
+  $info-bg-subtle-dark: tint-color($info-dark-color, 80%),
+  $warning-bg-subtle-dark: tint-color($warning-dark-color, 80%),
+  $danger-bg-subtle-dark: tint-color($danger-dark-color, 80%),
+  $primary-border-subtle-dark: tint-color($primary-dark-color, 60%),
+  $success-border-subtle-dark: tint-color($success-dark-color, 60%),
+  $info-border-subtle-dark: tint-color($info-dark-color, 60%),
+  $warning-border-subtle-dark: tint-color($warning-dark-color, 60%),
+  $danger-border-subtle-dark: tint-color($danger-dark-color, 60%),
+  $font-size-base: .9375rem,
+  $border-color-translucent: rgba(#080a0c, .0875),
+  $sidebar-width:  18rem,
+  $sidebar-widths: (
+    sm: 14rem,
+    lg: 24rem,
+    xl: 26rem
+  ),
+  $sidebar-padding-x: 1.5rem,
+  $sidebar-brand-color: var(--cui-body-color-dark),
+  $sidebar-toggler-color: var(--cui-tertiary-color-dark),
+  $sidebar-toggler-hover-color: var(--cui-secondary-color-dark),
+  $sidebar-toggler-focus-color: var(--cui-secondary-color-dark),
+  $sidebar-nav-padding-y: 1rem,
+  $sidebar-nav-padding-x: 1rem,
+  $header-color: var(--cui-secondary-color-dark),
+  $header-hover-color: var(--cui-body-color-dark),
+  $header-active-color: var(--cui-body-color-dark),
+  $header-toggler-color: var(--cui-secondary-color-dark),
+  $header-toggler-hover-color: var(--cui-body-color-dark),
+  $footer-bg: var(--cui-body-bg),
+  $table-cell-padding-y: .75rem,
+  $table-cell-padding-x: .75rem
+);
+
+@use "@coreui/chartjs/scss/coreui-chartjs";
+@use "vendors/simplebar";
+
+body {
+  background-color: var(--#{$prefix}tertiary-bg);
+}
+
+.wrapper {
+  width: 100%;
+  padding-inline: var(--#{$prefix}sidebar-occupy-start, 0) var(--#{$prefix}sidebar-occupy-end, 0);
+  will-change: auto;
+  @include transition(padding .15s);
+}
+
+.header {
+  min-height: 4rem;
+  border: 0;
+
+  .input-group .form-control {
+    --#{$prefix}body-color: var(--#{$prefix}body-color-dark);
+    --#{$prefix}input-placeholder-color: var(--#{$prefix}secondary-color-dark);
+  }
+}
+
+.sidebar-brand-full {
+  margin-left: 3px;
+}
+
+.sidebar-header {
+  .nav-underline-border {
+    --#{$prefix}nav-underline-border-link-padding-x: 1rem;
+    --#{$prefix}nav-underline-border-gap: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: calc(4rem + 1px); // stylelint-disable-line function-disallowed-list
+  }
+}
+
+.sidebar-toggler {
+  margin-inline-start: auto;
+}
+
+.sidebar-narrow,
+.sidebar-narrow-unfoldable:not(:hover) {
+  --#{$prefix}sidebar-padding-x: #{$spacer};
+
+  .sidebar-toggler {
+    display: none;
+  }
+
+  .sidebar-nav {
+    --#{$prefix}sidebar-nav-padding-x: #{$spacer * .5};
+  }
+}
+
+.sidebar-nav {
+  @include transition(padding .15s);
+}
+
+.card,
+.dropdown-menu,
+.footer,
+.sidebar {
+  box-shadow: rgb(50 50 93 / 2%) 0 2px 5px -1px, rgb(0 0 0 / 5%) 0 1px 3px -1px;
+}
+
+@include color-mode(dark) {
+  body {
+    background-color: var(--#{$prefix}dark-bg-subtle);
+  }
+
+  .sidebar {
+    background-color: var(--#{$prefix}body-bg) !important; // stylelint-disable-line
+    background-image: none !important; // stylelint-disable-line
+    border: 0;
+  }
+}
