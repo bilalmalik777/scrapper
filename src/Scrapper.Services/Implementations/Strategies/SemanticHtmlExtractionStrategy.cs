@@ -29,9 +29,16 @@ public partial class SemanticHtmlExtractionStrategy : IFieldExtractionStrategy
         {
             // A heading that's a question ("What is X's specialty?") is never a person/entity
             // name — skip past it rather than returning it, e.g. if an FAQ item's own heading
-            // happened to be the first heading on a whole-page record.
+            // happened to be the first heading on a whole-page record. Likewise a heading that
+            // sits inside a cookie-consent/GDPR banner: some consent widgets (rendered via a
+            // headless-browser fetch, since they're pure client-side JS) inject a *genuine*
+            // heading of their own ("This site uses cookies...") as real, visible DOM content
+            // positioned before the page's actual content — on a single-record whole-page
+            // record, that banner heading is otherwise indistinguishable from a real one.
             var heading = record.Descendants()
-                .FirstOrDefault(n => HeadingTags.Contains(n.Name) && !HtmlExtractionUtils.GetVisibleText(n).TrimEnd().EndsWith('?'));
+                .FirstOrDefault(n => HeadingTags.Contains(n.Name)
+                    && !HtmlExtractionUtils.GetVisibleText(n).TrimEnd().EndsWith('?')
+                    && !IsCookieConsentHeading(n));
             if (heading is not null)
             {
                 var headingText = HtmlExtractionUtils.GetVisibleText(heading);
@@ -287,6 +294,34 @@ public partial class SemanticHtmlExtractionStrategy : IFieldExtractionStrategy
 
     private static string BuildAttributeSignature(HtmlNode node) =>
         HtmlExtractionUtils.BuildAttributeSignature(node);
+
+    // Consent-widget vendors abbreviate their own class/id names inconsistently (CivicComputing's
+    // "CookieControl" widget uses ids like "ccc-title", "ccc-panel" — no literal "cookie"
+    // substring at all), so an ancestor-class check can't reliably catch this. The banner's own
+    // *wording* is far more consistent across vendors: virtually every cookie-consent heading
+    // opens with some variant of "This site/website uses cookies" or "We use cookies" — and
+    // essentially no genuine person/entity name heading would ever contain the word "cookies".
+    [GeneratedRegex(@"^(this (site|website)|we)\s+use[sd]?\s+cookies", RegexOptions.IgnoreCase)]
+    private static partial Regex CookieConsentHeadingRegex();
+
+    // The banner's opening heading is only the first of several — consent widgets commonly
+    // list each cookie category under its own sub-heading ("Necessary Cookies", "Analytics",
+    // ...) inside the same panel. These are the common ones across vendors; none of them is
+    // ever a plausible person/entity name.
+    private static readonly HashSet<string> CookieCategoryHeadings = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "necessary cookies", "strictly necessary cookies", "essential cookies", "analytics",
+        "analytics cookies", "performance cookies", "functional cookies", "marketing cookies",
+        "targeting cookies", "advertising cookies", "preference cookies", "social media cookies",
+        "optional cookies", "cookie preferences", "manage cookies", "manage cookie preferences",
+        "your privacy choices",
+    };
+
+    private static bool IsCookieConsentHeading(HtmlNode node)
+    {
+        var text = HtmlExtractionUtils.GetVisibleText(node).Trim();
+        return CookieConsentHeadingRegex().IsMatch(text) || CookieCategoryHeadings.Contains(text);
+    }
 
     [GeneratedRegex(@"^(?<label>[A-Za-z][A-Za-z \-]{1,40}?)\s*[:\-]\s*(?<value>.+)$")]
     private static partial Regex LabelValueRegex();
