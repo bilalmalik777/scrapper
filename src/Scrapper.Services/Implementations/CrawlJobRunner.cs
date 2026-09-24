@@ -44,6 +44,7 @@ public class CrawlJobRunner(
         }
 
         Run(id, (engine, ct) => engine.RunAsync(id, ct));
+        Console.WriteLine($"Started crawl job {id} (fresh={fresh})");
         return id;
     }
 
