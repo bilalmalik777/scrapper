@@ -170,7 +170,10 @@ public class CrawlHttpSession : ICrawlHttpSession
     }
 }
 
-public class CrawlHttpSessionFactory : ICrawlHttpSessionFactory
+public class CrawlHttpSessionFactory(IBrowserProvider browserProvider) : ICrawlHttpSessionFactory
 {
-    public ICrawlHttpSession Create(string? userAgent, int timeoutSeconds) => new CrawlHttpSession(userAgent, timeoutSeconds);
+    public ICrawlHttpSession Create(string? userAgent, int timeoutSeconds, bool enableJavaScriptRendering = false) =>
+        enableJavaScriptRendering
+            ? new PlaywrightCrawlHttpSession(browserProvider, userAgent, timeoutSeconds)
+            : new CrawlHttpSession(userAgent, timeoutSeconds);
 }

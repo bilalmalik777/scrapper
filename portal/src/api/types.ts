@@ -133,6 +133,8 @@ export interface PagedCrawlConfig {
   enableProfileCrawl?: boolean
   maxProfiles?: number
   timeoutSeconds?: number
+  /** Fetches every page through a real headless browser instead of a plain HTTP client — for sites whose bot protection blocks a plain client outright. Off by default. */
+  enableJavaScriptRendering?: boolean
   /** Sent as-is for the whole crawl — never rotated mid-crawl. Leave blank for a normal default. */
   userAgent?: string | null
   minDelaySeconds: number

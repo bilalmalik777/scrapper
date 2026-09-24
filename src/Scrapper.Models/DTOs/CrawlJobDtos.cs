@@ -42,6 +42,15 @@ public class PagedCrawlConfigDto
     /// </summary>
     public string? UserAgent { get; set; }
 
+    /// <summary>
+    /// Fetches every page (listing and profile) through a real headless browser instead of a
+    /// plain HTTP client — for sites whose bot protection blocks a plain client outright
+    /// (a TLS/connection-level fingerprint check, not just missing headers). Off by default,
+    /// matching the single-scrape engine's own opt-in JS rendering: slower/heavier, and
+    /// unnecessary for the large majority of sites.
+    /// </summary>
+    public bool EnableJavaScriptRendering { get; set; }
+
     /// <summary>Randomized delay range between page requests, in seconds.</summary>
     public double MinDelaySeconds { get; set; } = 5;
     public double MaxDelaySeconds { get; set; } = 15;

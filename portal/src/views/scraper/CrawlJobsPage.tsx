@@ -328,6 +328,16 @@ const CrawlJobsPage: React.FC = () => {
                 </CCol>
               </CRow>
 
+              <CRow className="mb-3">
+                <CCol md={12}>
+                  <CFormCheck
+                    label="Render JavaScript before scraping (headless browser) — for sites that block plain HTTP requests outright, regardless of headers"
+                    checked={config.enableJavaScriptRendering ?? false}
+                    onChange={(e) => setConfig({ ...config, enableJavaScriptRendering: e.target.checked })}
+                  />
+                </CCol>
+              </CRow>
+
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <CFormLabel className="mb-0">Fields to Extract</CFormLabel>
                 <CButton

@@ -29,7 +29,7 @@ public class PagedCrawlService(
         state.LastError = null;
         await stateStore.SaveAsync(state, cancellationToken);
 
-        using var session = sessionFactory.Create(state.Config.UserAgent, state.Config.TimeoutSeconds);
+        using var session = sessionFactory.Create(state.Config.UserAgent, state.Config.TimeoutSeconds, state.Config.EnableJavaScriptRendering);
         var totalPages = Math.Clamp(state.TotalPages, 1, ScrapingLimits.MaxCrawlTotalPages);
 
         try
@@ -76,7 +76,7 @@ public class PagedCrawlService(
         state.LastError = null;
         await stateStore.SaveAsync(state, cancellationToken);
 
-        using var session = sessionFactory.Create(state.Config.UserAgent, state.Config.TimeoutSeconds);
+        using var session = sessionFactory.Create(state.Config.UserAgent, state.Config.TimeoutSeconds, state.Config.EnableJavaScriptRendering);
 
         try
         {

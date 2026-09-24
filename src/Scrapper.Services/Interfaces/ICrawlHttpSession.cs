@@ -45,5 +45,11 @@ public interface ICrawlHttpSession : IDisposable
 
 public interface ICrawlHttpSessionFactory
 {
-    ICrawlHttpSession Create(string? userAgent, int timeoutSeconds);
+    /// <summary>
+    /// <paramref name="enableJavaScriptRendering"/> switches to a real headless-browser session
+    /// (see <c>PlaywrightCrawlHttpSession</c>) for sites whose bot protection blocks a plain
+    /// HTTP client outright regardless of headers — off by default, matching the single-scrape
+    /// engine's own opt-in JS rendering.
+    /// </summary>
+    ICrawlHttpSession Create(string? userAgent, int timeoutSeconds, bool enableJavaScriptRendering = false);
 }
