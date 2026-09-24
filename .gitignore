@@ -1,17 +1,478 @@
-## .NET
-bin/
-obj/
-*.user
-logs/
+# ============================================================
+# Node.js
+# ============================================================
 
-## Node / frontend
 node_modules/
-portal/build/
-tests/node_modules/
-tests/test-results/
-tests/playwright-report/
+dist/
 
-## IDE
+
+# ============================================================
+# Java / Maven
+# ============================================================
+
+*.class
+*.jar
+target/
+
+
+# ============================================================
+# Python
+# ============================================================
+
+# Compiled Python files
+*.py[cod]
+*$py.class
+__pycache__/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Test / coverage output
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checker / linter caches
+.mypy_cache/
+.pyre/
+.ruff_cache/
+.pytype/
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+# ============================================================
+# Logs
+# ============================================================
+
+*.log
+
+
+# ============================================================
+# .NET / Visual Studio
+# ============================================================
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+
+# Visual Studio cache/options
 .vs/
+
+# Visual Studio user-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# MonoDevelop / Xamarin Studio
+*.userprefs
+mono_crash.*
+
+# Visual Studio generated files
+Generated\ Files/
+
+# MSTest
+[Tt]est[Rr]est*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# ATL
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# StyleCop
+StyleCopReport.xml
+
+# Visual Studio generated/build files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Chutzpah
+_Chutzpah*
+
+# Visual C++ cache
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio trace
+*.e2e
+
+# TFS
+$tf/
+
+# Guidance Automation Toolkit
+*.gpState
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TeamCity
+_TeamCity*
+
+# DotCover
+*.dotCover
+
+# AxoCover
+.axoCover/*
+!.axoCover/settings.json
+
+# Coverlet
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Visual Studio code coverage
+*.coverage
+*.coveragexml
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench / Sass
+.sass-cache/
+
+# InstallShield
+[Ee]xpress/
+
+# DocProject
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# ClickOnce
+publish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Azure Web App publish settings
+PublishScripts/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# NuGet v3
+*.nuget.props
+*.nuget.targets
+
+# Microsoft Azure Build Output
+csx/
+*.build.csdef
+
+# Microsoft Azure Emulator
+ecf/
+rcf/
+
+# Windows Store app packages
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Visual Studio cache files
+*.[Cc]ache
+!?*.[Cc]ache/
+
+# ClientBin
+ClientBin/
+
+# Microsoft Office temporary files
+~$*
+
+# Backup/temp files
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+
+# Orleans
+orleans.codegen.cs
+
+# RIA / Silverlight
+Generated_Code/
+
+# Upgrade / backup files
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+*.rptproj.bak
+
+# SQL Server
+*.mdf
+*.ldf
+*.ndf
+
+# Business Intelligence
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+*.rptproj.rsuser
+*-[Bb]ackup.rdl
+*-[Bb]ackup ([0-9]).rdl
+*-[Bb]ackup ([0-9][0-9]).rdl
+
+# Microsoft Fakes
+FakesAssemblies/
+
+# GhostDoc
+*.GhostDoc.xml
+
+# Node.js Tools for Visual Studio
+.ntvs_analysis.dat
+
+# Visual Studio 6
+*.plg
+*.opt
+*.vbw
+
+# Visual Studio LightSwitch
+**/*.HTMLClient/GeneratedArtifacts
+**/*.DesktopClient/GeneratedArtifacts
+**/*.DesktopClient/ModelManifest.xml
+**/*.Server/GeneratedArtifacts
+**/*.Server/ModelManifest.xml
+_Pvt_Extensions
+
+# Paket
+.paket/paket.exe
+paket-files/
+
+# FAKE
+.fake/
+
+# CodeRush
+.cr/personal
+
+# Cake
+# tools/**
+# !tools/packages.config
+
+# Tabs Studio
+*.tss
+
+# Telerik JustMock
+*.jmconfig
+
+# BizTalk
+*.btp.cs
+*.btm.cs
+*.odx.cs
+*.xsd.cs
+
+# OpenCover
+OpenCover/
+
+# Azure Stream Analytics
+ASALocalRun/
+
+# MSBuild binary/structured log
+*.binlog
+
+# NVidia Nsight
+*.nvuser
+
+# MFractors
+.mfractor/
+
+# Visual Studio Local History
+.localhistory/
+
+# BeatPulse
+healthchecksdb
+
+# Visual Studio migration backup
+MigrationBackup/
+
+# Ionide
+.ionide/
+
+# Project-specific user files
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+
+
+# ============================================================
+# IDEs / Editors
+# ============================================================
+
+# JetBrains
 .idea/
-*.swp
+
+# Cursor
+.cursor/
+
+# Visual Studio Code
+# Uncomment if you want to ignore workspace-specific settings:
+# .vscode/
+
+
+# ============================================================
+# Operating System
+# ============================================================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+
+# ============================================================
+# Tests / Reports
+# ============================================================
+
+TEST*.xml
+
+
+# ============================================================
+# Applications / Compiled Artifacts
+# ============================================================
+
+*.app
+*.exe
+*.war
+
+
+# ============================================================
+# Large Media Files
+# ============================================================
+
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+
+# ============================================================
+# Documentation
+# ============================================================
+
+docs/
+
+
+# ============================================================
+# Clinflux — local dev file storage
+# ============================================================
+
+# LocalFileStorageService's on-disk root for uploaded patient files (Storage:RootPath, default
+# "App_Data/PatientFiles") when running the API locally via `dotnet run` — production instead uses
+# a Docker-mounted volume at a different path (see docker-compose.prod.yml), so this only ever
+# holds an individual developer's own local test uploads. Also covers the Data Protection key ring
+# persisted under App_Data/PatientFiles/_dpkeys (encrypts MFA secrets at rest) and App_Data_tmp/,
+# an equivalent scratch root used by some local/test runs.
+src/Clinflux.Api/App_Data/
+src/Clinflux.Api/App_Data_tmp/
+
+
+# ============================================================
+# Miscellaneous
+# ============================================================
+
+*.meta
