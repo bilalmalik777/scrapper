@@ -1,31 +1,15 @@
-using FluentAssertions;
 using Scrapper.Utils.Helpers;
+using Xunit;
 
 namespace Scrapper.Services.Tests;
 
 public class PagedUrlBuilderTests
 {
-    [Fact]
-    public void BuildPageUrl_ReplacesExistingPageParam()
-    {
-        var url = PagedUrlBuilder.BuildPageUrl("https://example.com/search?area=doctor&page=1", 5);
-
-        url.Should().Be("https://example.com/search?area=doctor&page=5");
-    }
-
-    [Fact]
-    public void BuildPageUrl_AddsPageParamWhenMissing()
-    {
-        var url = PagedUrlBuilder.BuildPageUrl("https://example.com/search?area=doctor", 3);
-
-        url.Should().Be("https://example.com/search?area=doctor&page=3");
-    }
-
-    [Fact]
-    public void BuildPageUrl_AddsPageParamWhenNoQueryStringAtAll()
-    {
-        var url = PagedUrlBuilder.BuildPageUrl("https://example.com/search", 2);
-
-        url.Should().Be("https://example.com/search?page=2");
-    }
+    [Theory]
+    [InlineData("https://www.doctify.com/uk/find/chiropractic/london/specialists/page-1", 6, "https://www.doctify.com/uk/find/chiropractic/london/specialists/page-6")]
+    [InlineData("https://example.com/list/page/2/", 10, "https://example.com/list/page/10/")]
+    [InlineData("https://example.com/list", 3, "https://example.com/list?page=3")]
+    [InlineData("https://example.com/list?a=1&page=2", 4, "https://example.com/list?a=1&page=4")]
+    public void BuildPageUrl_UsesTheSitesPaginationScheme(string baseUrl, int page, string expected) =>
+        Assert.Equal(expected, PagedUrlBuilder.BuildPageUrl(baseUrl, page));
 }

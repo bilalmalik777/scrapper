@@ -41,6 +41,12 @@ public record PageFetchResult(PageFetchOutcome Outcome, int? StatusCode, string?
 public interface ICrawlHttpSession : IDisposable
 {
     Task<PageFetchResult> FetchAsync(string url, string? referer, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Whether <see cref="FetchAsync"/> may be called from several tasks at once. A plain HTTP
+    /// client can; a session that drives one shared browser tab cannot.
+    /// </summary>
+    bool SupportsConcurrentFetch => false;
 }
 
 public interface ICrawlHttpSessionFactory

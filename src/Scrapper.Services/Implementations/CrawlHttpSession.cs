@@ -19,6 +19,8 @@ public class CrawlHttpSession : ICrawlHttpSession
     private readonly HttpMessageHandler? _ownedHandler;
     private readonly HttpClient _client;
 
+    public bool SupportsConcurrentFetch => true;
+
     public CrawlHttpSession(string? userAgent, int timeoutSeconds)
         : this(userAgent, timeoutSeconds, ownedHandler: new HttpClientHandler
         {

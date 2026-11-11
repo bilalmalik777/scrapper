@@ -27,6 +27,21 @@ public class ProfileFieldMerger(
         foreach (var field in fields)
         {
             var profileResult = await extractionOrchestrator.ExtractFieldAsync(profileContext, field, cancellationToken);
+            if (profileResult.IsMissing && profileContext.ContactUnavailable
+                && profileResult.ResolvedType is FieldKind.Phone or FieldKind.Location or FieldKind.Email)
+            {
+                // The profile itself says this person can't be contacted — so a contact value
+                // the listing card showed is stale/wrong, not something to keep.
+                record.Fields[field.Name] = null;
+                record.FieldResults[field.Name] = profileResult;
+                if (!record.MissingFields.Contains(field.Name))
+                {
+                    record.MissingFields.Add(field.Name);
+                }
+
+                continue;
+            }
+
             if (profileResult.IsMissing)
             {
                 continue; // Keep whatever the listing page already found (or leave it missing).

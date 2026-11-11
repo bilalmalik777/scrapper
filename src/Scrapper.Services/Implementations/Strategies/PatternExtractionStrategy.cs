@@ -82,7 +82,7 @@ public class PatternExtractionStrategy : IFieldExtractionStrategy
             return Task.FromResult<ExtractionCandidate?>(null);
         }
 
-        var text = UrlTextPattern.Replace(HtmlExtractionUtils.GetVisibleText(context.RecordNode), " ");
+        var text = UrlTextPattern.Replace(HtmlExtractionUtils.GetVisibleTextExcludingBoilerplate(context.RecordNode), " ");
 
         foreach (var pattern in patterns)
         {

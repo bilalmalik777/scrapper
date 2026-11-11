@@ -218,6 +218,11 @@ public class RecordDetector(IFieldInferenceEngine inferenceEngine) : IRecordDete
         "prizes and awards", "languages spoken",
     };
 
+    private static readonly HashSet<string> Honorifics = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "mr", "mrs", "ms", "miss", "mx", "dr", "prof", "professor", "sir", "dame",
+    };
+
     // Matches 2-5 consecutive Title Case words (e.g. "Alan Buckley") — used only as a fallback
     // when a heading is too short to judge on its own (see NodeLikelyContainsField's Name case).
     private static readonly Regex TitleCaseNamePattern =
@@ -271,8 +276,20 @@ public class RecordDetector(IFieldInferenceEngine inferenceEngine) : IRecordDete
             // This is the general, site-agnostic signal that tells the two apart; a curated
             // word list alone could never keep up with every site's own section/treatment/
             // specialty labels (structurally identical to a real repeated-card heading).
-            static bool LooksLikeName(string text) =>
-                text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count(w => char.IsUpper(w[0])) >= 2;
+            //
+            // A leading honorific ("Mr morgan rees", "Ms francesca minischetti") also marks a
+            // name even when the rest was typed lowercase — sites let practitioners enter
+            // their own display name, so capitalization of the remainder isn't reliable.
+            static bool LooksLikeName(string text)
+            {
+                var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length is >= 2 and <= 5 && Honorifics.Contains(words[0].TrimEnd('.')))
+                {
+                    return true;
+                }
+
+                return words.Count(w => char.IsUpper(w[0])) >= 2;
+            }
 
             if (LooksLikeName(headingText))
             {

@@ -73,26 +73,50 @@ public class JsonFileCrawlStateStore : ICrawlStateStore
         var dir = JobDirectory(jobId);
         Directory.CreateDirectory(dir);
 
-        var existingKeys = await LoadDedupeKeysAsync(jobId, cancellationToken);
-        var newLines = new List<string>();
+        // Upsert: a record already saved for this job (same dedupe key — e.g. this page is being
+        // re-crawled from a chosen page) is replaced in place with the fresh data; one that's
+        // missing is appended. Returns how many were newly added (updates don't count).
+        var existing = await LoadRecordsAsync(jobId, cancellationToken);
+        var indexByKey = new Dictionary<string, int>();
+        for (var i = 0; i < existing.Count; i++)
+        {
+            indexByKey.TryAdd(DedupeKey(existing[i]), i);
+        }
+
+        var added = new List<ScrapedRecordDto>();
+        var anyUpdated = false;
 
         foreach (var record in records)
         {
             var key = DedupeKey(record);
-            if (!existingKeys.Add(key))
+            if (indexByKey.TryGetValue(key, out var idx))
             {
-                continue; // Already saved (e.g. this page was re-processed after a resume).
+                if (JsonSerializer.Serialize(existing[idx]) != JsonSerializer.Serialize(record))
+                {
+                    existing[idx] = record;
+                    anyUpdated = true;
+                }
+
+                continue;
             }
 
-            newLines.Add(JsonSerializer.Serialize(record));
+            indexByKey[key] = existing.Count + added.Count;
+            added.Add(record);
         }
 
-        if (newLines.Count > 0)
+        if (anyUpdated)
         {
-            await File.AppendAllLinesAsync(RecordsPath(jobId), newLines, cancellationToken);
+            var all = existing.Concat(added).Select(r => JsonSerializer.Serialize(r)).ToList();
+            var tempPath = RecordsPath(jobId) + ".tmp";
+            await File.WriteAllLinesAsync(tempPath, all, cancellationToken);
+            File.Move(tempPath, RecordsPath(jobId), overwrite: true);
+        }
+        else if (added.Count > 0)
+        {
+            await File.AppendAllLinesAsync(RecordsPath(jobId), added.Select(r => JsonSerializer.Serialize(r)), cancellationToken);
         }
 
-        return newLines.Count;
+        return added.Count;
     }
 
     public async Task<List<ScrapedRecordDto>> LoadRecordsAsync(string jobId, CancellationToken cancellationToken = default)
@@ -119,12 +143,6 @@ public class JsonFileCrawlStateStore : ICrawlStateStore
         }
 
         return records;
-    }
-
-    private async Task<HashSet<string>> LoadDedupeKeysAsync(string jobId, CancellationToken cancellationToken)
-    {
-        var records = await LoadRecordsAsync(jobId, cancellationToken);
-        return records.Select(DedupeKey).ToHashSet();
     }
 
     /// <summary>

@@ -15,6 +15,20 @@ public class ExtractionContext
     public required int TotalRecords { get; init; }
     public required IReadOnlyList<Dictionary<string, object?>> StructuredDataObjects { get; init; }
 
+    private bool? _contactUnavailable;
+
+    /// <summary>
+    /// True when this is a whole-page (single profile) record whose visible content says the
+    /// person can't be contacted/booked ("It is not possible to contact or book an appointment
+    /// with this doctor"). Such pages still ship stale contact details in their structured data
+    /// even though the page itself shows none — so contact fields must stay empty, not be
+    /// filled from that leftover data.
+    /// </summary>
+    public bool ContactUnavailable => _contactUnavailable ??=
+        ReferenceEquals(RecordNode, DocumentNode)
+        && Scrapper.Services.Implementations.HtmlExtractionUtils.GetVisibleText(DocumentNode)
+            .Contains("not possible to contact or book an appointment", StringComparison.OrdinalIgnoreCase);
+
     // Purely navigational/SEO JSON-LD blocks that pages commonly emit alongside their main
     // entity (breadcrumbs, site search box, ...) — never the thing a user is asking to scrape.
     // Internal (not private): also used by StructuredDataExtractionStrategy's cross-entity

@@ -37,7 +37,7 @@ public class CrawlJobsController(ICrawlJobRunner jobRunner, ICrawlStateStore sta
 
     [HttpPost("{jobId}/resume")]
     public async Task<ActionResult<Models.Common.ApiResponse<string>>> Resume(
-        string jobId, CancellationToken cancellationToken)
+        string jobId, [FromQuery] int? fromPage, [FromQuery] int? maxProfiles, CancellationToken cancellationToken)
     {
         var state = await jobRunner.GetStateAsync(jobId, cancellationToken);
         if (state is null)
@@ -45,7 +45,7 @@ public class CrawlJobsController(ICrawlJobRunner jobRunner, ICrawlStateStore sta
             return Fail<string>("No crawl job found with that id.", 404);
         }
 
-        await jobRunner.ResumeAsync(jobId, cancellationToken);
+        await jobRunner.ResumeAsync(jobId, fromPage, maxProfiles, cancellationToken);
         return Ok(jobId, "Crawl job resumed.");
     }
 

@@ -26,6 +26,19 @@ public partial class FieldExtractionOrchestrator(
         var resolvedKind = field.Type ?? inferenceEngine.Infer(field.Name);
         ExtractionCandidate? bestInvalidCandidate = null;
 
+        if (resolvedKind is FieldKind.Phone or FieldKind.Location or FieldKind.Email && context.ContactUnavailable)
+        {
+            return new FieldResultDto
+            {
+                Value = null,
+                ResolvedType = resolvedKind,
+                Source = ExtractionSource.None,
+                Confidence = 0,
+                ConfidenceLevel = ConfidenceLevel.None,
+                IsMissing = true,
+            };
+        }
+
         foreach (var strategy in strategies)
         {
             var candidate = await strategy.TryExtractAsync(context, field, resolvedKind, cancellationToken);
@@ -71,6 +84,15 @@ public partial class FieldExtractionOrchestrator(
             if (FieldValueValidator.IsPlausible(resolvedKind, candidate.Value))
             {
                 return BuildResult(candidate.Value, resolvedKind, candidate.Source, candidate.Confidence);
+            }
+
+            // Contact-detail fields are either a real address/number/email or nothing — a
+            // failed-validation guess (a stray "Expert in:" as a phone, a rating as a phone, a
+            // phone/email line as an address) is never useful, so it's dropped and the field
+            // stays empty rather than being surfaced at reduced confidence.
+            if (resolvedKind is FieldKind.Phone or FieldKind.Location or FieldKind.Email)
+            {
+                continue;
             }
 
             if (bestInvalidCandidate is null || candidate.Confidence > bestInvalidCandidate.Confidence)

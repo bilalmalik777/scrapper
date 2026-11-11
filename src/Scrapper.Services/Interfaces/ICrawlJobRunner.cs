@@ -13,8 +13,12 @@ public interface ICrawlJobRunner
     /// <summary>Creates (or resets, if <paramref name="fresh"/>) a job's checkpoint and starts it running in the background. Returns the job id.</summary>
     Task<string> StartAsync(string? jobId, PagedCrawlConfigDto config, bool fresh, CancellationToken cancellationToken);
 
-    /// <summary>Resumes an existing, not-currently-running job from its last checkpoint.</summary>
-    Task ResumeAsync(string jobId, CancellationToken cancellationToken);
+    /// <summary>
+    /// Resumes an existing, not-currently-running job from its last checkpoint — or, when
+    /// <paramref name="fromPage"/> is given, from that page instead (re-crawling it and every
+    /// later page; records already saved are updated in place, missing ones are added).
+    /// </summary>
+    Task ResumeAsync(string jobId, int? fromPage, int? maxProfiles, CancellationToken cancellationToken);
 
     /// <summary>Re-attempts only this job's currently-failed pages.</summary>
     Task RetryFailedAsync(string jobId, CancellationToken cancellationToken);

@@ -18,6 +18,8 @@ interface ResultsPreviewProps {
    * (e.g. one row per location) without mutating the underlying scrape result. */
   records?: ScrapedRecord[]
   onConfigureField?: (fieldName: string) => void
+  /** Adds a leading "Page" column showing which listing page each record was extracted from. */
+  showPageNumber?: boolean
 }
 
 const confidenceBadgeColor: Record<ConfidenceLevel, string> = {
@@ -27,7 +29,7 @@ const confidenceBadgeColor: Record<ConfidenceLevel, string> = {
   None: 'secondary',
 }
 
-const ResultsPreview: React.FC<ResultsPreviewProps> = ({ result, records, onConfigureField }) => {
+const ResultsPreview: React.FC<ResultsPreviewProps> = ({ result, records, onConfigureField, showPageNumber }) => {
   const displayRecords = records ?? result.records
 
   return (
@@ -70,6 +72,7 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ result, records, onConf
           <CTable striped bordered small>
             <CTableHead>
               <CTableRow>
+                {showPageNumber && <CTableHeaderCell>Page</CTableHeaderCell>}
                 {result.fieldNames.map((name) => (
                   <CTableHeaderCell key={name}>{name}</CTableHeaderCell>
                 ))}
@@ -78,6 +81,7 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ result, records, onConf
             <CTableBody>
               {displayRecords.map((record, rowIdx) => (
                 <CTableRow key={rowIdx}>
+                  {showPageNumber && <CTableDataCell>{record.pageNumber}</CTableDataCell>}
                   {result.fieldNames.map((name) => {
                     const isMissing = record.missingFields.includes(name)
                     const fieldResult = record.fieldResults[name]

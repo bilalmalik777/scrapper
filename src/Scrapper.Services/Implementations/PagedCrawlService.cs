@@ -125,6 +125,7 @@ public class PagedCrawlService(
             state.FailedPages.Remove(page);
             state.FailedPages.Add(page);
             state.LastError = $"Page {page}: {result.Outcome} — {result.Detail}";
+            AddSkipped(state, page, "Page", null, state.Config.Url is { } u ? PagedUrlBuilder.BuildPageUrl(u, page) : null, $"{result.Outcome} — {result.Detail}");
             await stateStore.SaveAsync(state, cancellationToken);
 
             var stopCleanly = result.Outcome == Interfaces.PageFetchOutcome.Forbidden || state.Config.StopOnPersistentFailure;
@@ -160,9 +161,12 @@ public class PagedCrawlService(
             state.FailedPages.Remove(page);
             state.FailedPages.Add(page);
             state.LastError = $"Page {page}: extraction failed — {ex.Message}";
+            AddSkipped(state, page, "Page", null, url, $"Extraction failed — {ex.Message}");
             logger.LogError(ex, "Page: {Page}/{TotalPages} extraction failed", page, state.TotalPages);
             return state.Config.StopOnPersistentFailure ? PageOutcome.StopCrawl : PageOutcome.Continue;
         }
+
+        state.SkippedItems.RemoveAll(i => i.Page == page);
 
         foreach (var record in records)
         {
@@ -219,40 +223,91 @@ public class PagedCrawlService(
             return;
         }
 
-        foreach (var record in records)
+        var concurrency = session.SupportsConcurrentFetch ? Math.Clamp(state.Config.ProfileConcurrency, 1, 8) : 1;
+        var stateLock = new object();
+        var inFlight = 0;
+
+        async Task VisitOneAsync(ScrapedRecordDto record)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (state.ProfilesVisited >= state.Config.MaxProfiles)
+            // Reserve a slot under the cap atomically, so parallel workers can't overshoot it.
+            var limitReached = false;
+            lock (stateLock)
             {
-                break;
+                if (state.ProfilesVisited + inFlight >= state.Config.MaxProfiles)
+                {
+                    limitReached = true;
+                    AddSkipped(state, page, "Profile", RecordLabel(record), record.ProfileUrl,
+                        $"Profile limit reached ({state.Config.MaxProfiles}) — only the listing data was saved");
+                }
+                else
+                {
+                    inFlight++;
+                }
             }
 
-            if (string.IsNullOrWhiteSpace(record.ProfileUrl))
+            if (limitReached)
             {
-                continue;
+                return;
             }
 
-            await RandomDelayAsync(state.Config, cancellationToken);
-
-            var (profileResult, _) = await FetchWithRetryAsync(session, record.ProfileUrl, listingPageUrl, state.Config, page, cancellationToken);
-            if (!profileResult.IsSuccess)
+            try
             {
-                logger.LogWarning(
-                    "Page: {Page} Profile: {ProfileUrl} Status: {Outcome} Reason: {Detail} Action: keeping listing data, continuing",
-                    page, record.ProfileUrl, profileResult.Outcome, profileResult.Detail);
-                continue;
+                await RandomDelayAsync(state.Config, cancellationToken);
+
+                var (profileResult, _) = await FetchWithRetryAsync(session, record.ProfileUrl!, listingPageUrl, state.Config, page, cancellationToken);
+                if (!profileResult.IsSuccess)
+                {
+                    logger.LogWarning(
+                        "Page: {Page} Profile: {ProfileUrl} Status: {Outcome} Reason: {Detail} Action: keeping listing data, continuing",
+                        page, record.ProfileUrl, profileResult.Outcome, profileResult.Detail);
+                    lock (stateLock)
+                    {
+                        AddSkipped(state, page, "Profile", RecordLabel(record), record.ProfileUrl,
+                            $"Profile page not loaded: {profileResult.Outcome} — {profileResult.Detail}");
+                    }
+
+                    return;
+                }
+
+                var profileDoc = new HtmlDocument();
+                profileDoc.LoadHtml(profileResult.Html!);
+                await profileFieldMerger.MergeProfileFieldsAsync(record, profileDoc.DocumentNode, state.Config.Fields, cancellationToken);
+
+                int visited;
+                lock (stateLock)
+                {
+                    state.SkippedItems.RemoveAll(i => i.Kind == "Profile" && i.Url == record.ProfileUrl);
+                    visited = ++state.ProfilesVisited;
+                }
+
+                logger.LogInformation(
+                    "Page: {Page} Profile: {ProfileUrl} Status: {StatusCode} Profiles visited: {Visited}/{Max}",
+                    page, record.ProfileUrl, profileResult.StatusCode, visited, state.Config.MaxProfiles);
             }
-
-            var profileDoc = new HtmlDocument();
-            profileDoc.LoadHtml(profileResult.Html!);
-            await profileFieldMerger.MergeProfileFieldsAsync(record, profileDoc.DocumentNode, state.Config.Fields, cancellationToken);
-            state.ProfilesVisited++;
-
-            logger.LogInformation(
-                "Page: {Page} Profile: {ProfileUrl} Status: {StatusCode} Profiles visited: {Visited}/{Max}",
-                page, record.ProfileUrl, profileResult.StatusCode, state.ProfilesVisited, state.Config.MaxProfiles);
+            finally
+            {
+                lock (stateLock)
+                {
+                    inFlight--;
+                }
+            }
         }
+
+        await Parallel.ForEachAsync(
+            records.Where(r => !string.IsNullOrWhiteSpace(r.ProfileUrl)),
+            new ParallelOptions { MaxDegreeOfParallelism = concurrency, CancellationToken = cancellationToken },
+            async (record, _) => await VisitOneAsync(record));
+    }
+
+    private static string? RecordLabel(ScrapedRecordDto record) =>
+        record.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+
+    private static void AddSkipped(CrawlJobStateDto state, int page, string kind, string? name, string? url, string reason)
+    {
+        state.SkippedItems.RemoveAll(i => i.Kind == kind && i.Page == page && i.Url == url);
+        state.SkippedItems.Add(new CrawlSkippedItemDto { Page = page, Kind = kind, Name = name, Url = url, Reason = reason });
     }
 
     private async Task<(Interfaces.PageFetchResult Result, int Attempts)> FetchWithRetryAsync(

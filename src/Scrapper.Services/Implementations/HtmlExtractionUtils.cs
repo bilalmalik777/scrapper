@@ -58,8 +58,20 @@ internal static class HtmlExtractionUtils
     // '\n' as a rough proxy for "this is a different block of content" to stop a lazy match
     // from reaching across unrelated page content — flattening newlines into spaces here would
     // silently let those patterns span far more of the page than intended.
-    public static string CleanText(string text) =>
-        HorizontalWhitespaceRunPattern.Replace(System.Net.WebUtility.HtmlDecode(text), " ").Trim();
+    //
+    // Also drops invisible "format" characters (zero-width spaces, the Mongolian vowel
+    // separator, BOMs, ...). Sites occasionally leave one in front of a name; it renders as
+    // nothing but makes the text start with a non-letter, defeating capitalization checks.
+    public static string CleanText(string text)
+    {
+        var decoded = System.Net.WebUtility.HtmlDecode(text);
+        if (decoded.Any(c => char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format))
+        {
+            decoded = new string(decoded.Where(c => char.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.Format).ToArray());
+        }
+
+        return HorizontalWhitespaceRunPattern.Replace(decoded, " ").Trim();
+    }
 
     private static readonly HashSet<string> NonVisibleTextTags = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -91,6 +103,53 @@ internal static class HtmlExtractionUtils
 
         var relevant = textNodes.Where(t => t.ParentNode is null || !NonVisibleTextTags.Contains(t.ParentNode.Name));
         return CleanText(string.Join(' ', relevant.Select(t => t.InnerText)));
+    }
+
+    /// <summary>
+    /// Like <see cref="GetVisibleText"/>, but skips anything inside a site-wide footer or
+    /// navigation block. On a single-record page the "record" is the whole document, so a
+    /// shape-only scan (an address, a phone number) would otherwise happily pick up the
+    /// company's own footer address/phone as if it belonged to the profile being scraped.
+    /// </summary>
+    public static string GetVisibleTextExcludingBoilerplate(HtmlNode node)
+    {
+        if (NonVisibleTextTags.Contains(node.Name))
+        {
+            return string.Empty;
+        }
+
+        var textNodes = node.SelectNodes(".//text()");
+        if (textNodes is null)
+        {
+            return GetVisibleText(node);
+        }
+
+        var relevant = textNodes.Where(t => !IsInsideBoilerplate(t, node));
+        return CleanText(string.Join(' ', relevant.Select(t => t.InnerText)));
+    }
+
+    private static bool IsInsideBoilerplate(HtmlNode text, HtmlNode scope)
+    {
+        for (var current = text.ParentNode; current is not null; current = current.ParentNode)
+        {
+            if (NonVisibleTextTags.Contains(current.Name) || current.Name is "footer" or "nav")
+            {
+                return true;
+            }
+
+            if (!ReferenceEquals(current, scope)
+                && BuildAttributeSignature(current).Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains("footer"))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(current, scope))
+            {
+                break;
+            }
+        }
+
+        return false;
     }
 
     private static readonly string[] BlockTags = ["p", "div", "li", "br", "h1", "h2", "h3", "h4", "h5", "h6"];

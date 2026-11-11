@@ -155,6 +155,15 @@ export interface StartCrawlJobRequest {
   fresh?: boolean
 }
 
+export interface CrawlSkippedItem {
+  page: number
+  /** "Page" (a whole listing page) or "Profile" (one record's detail page). */
+  kind: 'Page' | 'Profile'
+  name?: string | null
+  url?: string | null
+  reason: string
+}
+
 export interface CrawlJobState {
   jobId: string
   config: PagedCrawlConfig
@@ -164,6 +173,8 @@ export interface CrawlJobState {
   currentPage?: number | null
   failedPages: number[]
   recordsSaved: number
+  profilesVisited: number
+  skippedItems: CrawlSkippedItem[]
   lastError?: string | null
   fieldNames: string[]
   createdAt: string

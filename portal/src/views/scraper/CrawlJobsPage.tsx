@@ -85,6 +85,8 @@ const CrawlJobsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [fromPageInput, setFromPageInput] = useState('')
+  const [maxProfilesInput, setMaxProfilesInput] = useState('')
   const [fieldModalOpen, setFieldModalOpen] = useState(false)
   const [editingFieldIndex, setEditingFieldIndex] = useState<number | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -162,7 +164,11 @@ const CrawlJobsPage: React.FC = () => {
     setError(null)
     setBusy(true)
     try {
-      await crawlJobsApi.resume(activeJobId)
+      await crawlJobsApi.resume(
+        activeJobId,
+        Number(fromPageInput) > 0 ? Number(fromPageInput) : undefined,
+        Number(maxProfilesInput) > 0 ? Number(maxProfilesInput) : undefined,
+      )
       await refreshStatus(activeJobId)
       startPolling(activeJobId)
     } catch (err) {
@@ -460,10 +466,29 @@ const CrawlJobsPage: React.FC = () => {
               )}
 
               <div className="d-flex gap-2 flex-wrap">
-                {(state.status === 'Paused' || state.status === 'Blocked') && (
-                  <CButton color="primary" disabled={busy} onClick={handleResume}>
-                    Resume
-                  </CButton>
+                {state.status !== 'Running' && (
+                  <div className="d-flex gap-2 align-items-center">
+                    <CFormInput
+                      type="number"
+                      min={1}
+                      max={state.totalPages}
+                      style={{ width: 130 }}
+                      placeholder="From page"
+                      value={fromPageInput}
+                      onChange={(e) => setFromPageInput(e.target.value)}
+                    />
+                    <CFormInput
+                      type="number"
+                      min={1}
+                      style={{ width: 160 }}
+                      placeholder={`Max profiles (${state.config.maxProfiles ?? ''})`}
+                      value={maxProfilesInput}
+                      onChange={(e) => setMaxProfilesInput(e.target.value)}
+                    />
+                    <CButton color="primary" disabled={busy} onClick={handleResume}>
+                      {fromPageInput ? `Re-crawl from page ${fromPageInput}` : 'Resume'}
+                    </CButton>
+                  </div>
                 )}
                 {state.failedPages.length > 0 && (
                   <CButton color="warning" disabled={busy} onClick={handleRetryFailed}>
@@ -473,6 +498,51 @@ const CrawlJobsPage: React.FC = () => {
                 <CButton color="secondary" variant="outline" disabled={busy} onClick={() => activeJobId && refreshStatus(activeJobId)}>
                   Refresh Now
                 </CButton>
+              </div>
+            </CCardBody>
+          </CCard>
+        )}
+
+        {state && state.skippedItems?.length > 0 && (
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Skipped / Not Fully Scraped ({state.skippedItems.length})</strong>
+              <div className="text-body-secondary small">
+                Listed items that couldn't be scraped (or only partly), with the reason. Use "Re-crawl from page" to retry them.
+              </div>
+            </CCardHeader>
+            <CCardBody>
+              <div className="table-responsive">
+                <CTable striped bordered small>
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell>Page</CTableHeaderCell>
+                      <CTableHeaderCell>Type</CTableHeaderCell>
+                      <CTableHeaderCell>Name</CTableHeaderCell>
+                      <CTableHeaderCell>URL</CTableHeaderCell>
+                      <CTableHeaderCell>Reason</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {state.skippedItems.map((item, i) => (
+                      <CTableRow key={i}>
+                        <CTableDataCell>{item.page}</CTableDataCell>
+                        <CTableDataCell>{item.kind}</CTableDataCell>
+                        <CTableDataCell>{item.name ?? ''}</CTableDataCell>
+                        <CTableDataCell>
+                          {item.url ? (
+                            <a href={item.url} target="_blank" rel="noreferrer">
+                              {item.url}
+                            </a>
+                          ) : (
+                            ''
+                          )}
+                        </CTableDataCell>
+                        <CTableDataCell>{item.reason}</CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
               </div>
             </CCardBody>
           </CCard>
@@ -493,7 +563,7 @@ const CrawlJobsPage: React.FC = () => {
               </div>
             </CCardHeader>
             <CCardBody>
-              <ResultsPreview result={previewResult} />
+              <ResultsPreview result={previewResult} showPageNumber />
             </CCardBody>
           </CCard>
         )}

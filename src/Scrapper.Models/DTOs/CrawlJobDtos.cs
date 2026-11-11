@@ -32,7 +32,14 @@ public class PagedCrawlConfigDto
     public bool EnableProfileCrawl { get; set; } = true;
 
     /// <summary>Maximum number of individual profile pages to visit across the whole job (not per page).</summary>
-    public int MaxProfiles { get; set; } = 200;
+    public int MaxProfiles { get; set; } = 1000;
+
+    /// <summary>
+    /// How many profile pages are fetched at the same time within one listing page (plain-HTTP
+    /// crawls only; a JS-rendering crawl always goes one at a time). Each fetch still waits its
+    /// own random delay first, so this multiplies throughput without removing the pacing.
+    /// </summary>
+    public int ProfileConcurrency { get; set; } = 4;
 
     public int TimeoutSeconds { get; set; } = 20;
 
@@ -86,10 +93,24 @@ public class CrawlJobStateDto
     public List<int> FailedPages { get; set; } = [];
     public int RecordsSaved { get; set; }
     public int ProfilesVisited { get; set; }
+
+    /// <summary>Pages/profiles that were listed but not (fully) scraped, with the reason — shown in their own table.</summary>
+    public List<CrawlSkippedItemDto> SkippedItems { get; set; } = [];
     public string? LastError { get; set; }
     public List<string> FieldNames { get; set; } = [];
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+public class CrawlSkippedItemDto
+{
+    public int Page { get; set; }
+
+    /// <summary>"Page" (a whole listing page) or "Profile" (one record's detail page).</summary>
+    public string Kind { get; set; } = "Profile";
+    public string? Name { get; set; }
+    public string? Url { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }
 
 public class StartCrawlJobRequestDto

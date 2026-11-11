@@ -48,10 +48,38 @@ public class CrawlJobRunner(
         return id;
     }
 
-    public Task ResumeAsync(string jobId, CancellationToken cancellationToken)
+    public async Task ResumeAsync(string jobId, int? fromPage, int? maxProfiles, CancellationToken cancellationToken)
     {
+        if (fromPage is { } page)
+        {
+            var state = await stateStore.LoadAsync(jobId, cancellationToken)
+                ?? throw new InvalidOperationException($"No crawl job found with id '{jobId}'.");
+            if (_running.ContainsKey(jobId))
+            {
+                throw new InvalidOperationException($"Crawl job '{jobId}' is already running.");
+            }
+
+            state.LastCompletedPage = Math.Clamp(page, 1, Math.Max(1, state.TotalPages)) - 1;
+            state.FailedPages.RemoveAll(p => p >= state.LastCompletedPage + 1);
+            state.SkippedItems.RemoveAll(i => i.Page >= state.LastCompletedPage + 1);
+
+            // The profile counter is job-wide; pages being re-crawled will re-visit their own
+            // profiles, so only profiles already visited on earlier pages still count toward the cap.
+            var saved = await stateStore.LoadRecordsAsync(jobId, cancellationToken);
+            state.ProfilesVisited = saved.Count(r => r.ProfileVisited && r.PageNumber <= state.LastCompletedPage);
+            state.Status = CrawlJobStatus.Paused;
+            await stateStore.SaveAsync(state, cancellationToken);
+        }
+
+        if (maxProfiles is > 0)
+        {
+            var state = await stateStore.LoadAsync(jobId, cancellationToken)
+                ?? throw new InvalidOperationException($"No crawl job found with id '{jobId}'.");
+            state.Config.MaxProfiles = maxProfiles.Value;
+            await stateStore.SaveAsync(state, cancellationToken);
+        }
+
         Run(jobId, (engine, ct) => engine.RunAsync(jobId, ct));
-        return Task.CompletedTask;
     }
 
     public Task RetryFailedAsync(string jobId, CancellationToken cancellationToken)

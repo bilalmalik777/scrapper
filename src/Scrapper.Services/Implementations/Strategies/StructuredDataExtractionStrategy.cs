@@ -196,10 +196,25 @@ public partial class StructuredDataExtractionStrategy : IFieldExtractionStrategy
 
         // A schema.org PostalAddress (or similar address-shaped object) has no single
         // "name" field but can be composed into a readable address from its parts.
-        var addressParts = new[] { "streetAddress", "addressLocality", "addressRegion", "postalCode" }
-            .Select(k => dict.GetValueOrDefault(k) as string)
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .ToList();
+        // Some sites put the whole address ("Wood Rd, Tettenhall, Wolverhampton, WV6 8LE") in
+        // streetAddress and then repeat the town/region/postcode in their own fields — a part
+        // already present in what's been assembled so far is skipped rather than appended again.
+        var addressParts = new List<string>();
+        foreach (var key in new[] { "streetAddress", "addressLocality", "addressRegion", "postalCode" })
+        {
+            var part = (dict.GetValueOrDefault(key) as string)?.Trim();
+            if (string.IsNullOrWhiteSpace(part))
+            {
+                continue;
+            }
+
+            if (addressParts.Any(existing => existing.Contains(part, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            addressParts.Add(part);
+        }
 
         return addressParts.Count > 0 ? string.Join(", ", addressParts) : null;
     }

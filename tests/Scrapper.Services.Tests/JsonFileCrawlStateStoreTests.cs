@@ -86,6 +86,23 @@ public class JsonFileCrawlStateStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task AppendRecordsAsync_UpdatesExistingRecordInPlace_AndAddsMissingOne()
+    {
+        var original = new ScrapedRecordDto { Fields = { ["Name"] = "Alan", ["Phone"] = null }, ProfileUrl = "https://example.com/alan" };
+        await _store.AppendRecordsAsync("job-6", [original]);
+
+        var updated = new ScrapedRecordDto { Fields = { ["Name"] = "Alan", ["Phone"] = "123" }, ProfileUrl = "https://example.com/alan" };
+        var brandNew = new ScrapedRecordDto { Fields = { ["Name"] = "Bea" }, ProfileUrl = "https://example.com/bea" };
+        var added = await _store.AppendRecordsAsync("job-6", [updated, brandNew]);
+
+        added.Should().Be(1);
+        var all = await _store.LoadRecordsAsync("job-6");
+        all.Should().HaveCount(2);
+        all[0].Fields["Phone"].Should().Be("123");
+        all[1].Fields["Name"].Should().Be("Bea");
+    }
+
+    [Fact]
     public async Task ResetAsync_RemovesStateAndRecords()
     {
         await _store.SaveAsync(new CrawlJobStateDto { JobId = "job-5" });
